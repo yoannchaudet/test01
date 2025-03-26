@@ -1,0 +1,30 @@
+name: "Proxima (ghe.com)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      do-it:
+        description: "Whether to take action or just show what would change"
+        required: true
+        default: false
+        type: boolean
+      force:
+        description: "Acknowledge that significant changes are being made and do them"
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours
+
+concurrency:
+  group: "proxima"
+  cancel-in-progress: false
+
+jobs:
+
+  # Build OctoDNS container (don't push it)
+  build-container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
