@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       do-it:
-        description: "Whether to take action or just show what would change"
+        description: "Do It: Whether to take action or just show what would change"
         required: true
         default: false
         type: boolean
       force:
-        description: "Acknowledge that significant changes are being made and do them"
+        description: "Force: Acknowledge that significant changes are being made and do them"
         required: true
         default: false
         type: boolean
   schedule:
-    - cron: "0 */6 * * *" # every 6 hours
+    - cron: "*/1 * * * *"
 
 concurrency:
   group: "proxima"
@@ -25,6 +25,37 @@ jobs:
   # Build OctoDNS container (don't push it)
   build-container:
     runs-on: ubuntu-latest
+    outputs:
+      octodns-extra-args: ${{ steps.set-octodns-extra-args.outputs.extra-args }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set OctoDNS extra args
+        id: set-octodns-extra-args
+        run: |
+          ARGS=""
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event.inputs.do-it }}" == "true" ]]; then
+            ARGS="$ARGS --do-it"
+          fi
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force }}" == "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          echo "extra-args=$ARGS" >> $GITHUB_OUTPUT
+
+  sync-ns1:
+    runs-on: ubuntu-latest
+    needs: build-container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - run: |
+          echo "OctoDNS args = ${{ needs.build-container.outputs.octodns-extra-args }}"
+
+  sync-route53:
+    runs-on: ubuntu-latest
+    needs: build-container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - run: |
+          echo "OctoDNS args = ${{ needs.build-container.outputs.octodns-extra-args }}"
