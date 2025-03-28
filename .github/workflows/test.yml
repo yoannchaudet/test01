@@ -37,7 +37,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event.inputs.do-it }}" == "true" ]]; then
             ARGS="$ARGS --do-it"
           fi
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force }}" == "true" ]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force }}" == "true" ]]; then
             ARGS="$ARGS --force"
           fi
           echo "extra-args=$ARGS" >> $GITHUB_OUTPUT
