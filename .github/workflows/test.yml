@@ -41,7 +41,7 @@ jobs:
       - name: Validate condition
         run: |
           if [[ "${{ github.event_name }}" != "schedule" && ! ( "${{ github.event_name }}" == "workflow_dispatch" && "${{ needs.approval.result }}" == "success" ) ]]; then
-            echo "Approval conditions not met. Exiting workflow."
+            echo "::error::Approval conditions not met. Exiting workflow."
             exit 1
           fi
       - name: Checkout
