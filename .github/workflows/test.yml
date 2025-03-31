@@ -22,9 +22,15 @@ concurrency:
 
 jobs:
 
+  approval:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: request-approval
+
   # Build OctoDNS container (don't push it)
   build-container:
     runs-on: ubuntu-latest
+    needs: approval
     outputs:
       octodns-extra-args: ${{ steps.set-octodns-extra-args.outputs.extra-args }}
     steps:
