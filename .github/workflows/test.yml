@@ -26,6 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
     environment: request-approval
+    steps:
+      - run: |
+          echo "This workflow has been explicitly approved by @github/edge-foundation."
 
   # Build OctoDNS container (don't push it)
   build-container:
