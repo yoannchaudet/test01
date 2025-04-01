@@ -64,8 +64,13 @@ jobs:
   sync-ns1:
     runs-on: ubuntu-latest
     needs: build-container
-    if: ${{ needs.build-container.result == 'success' }}
+    if: always()
     steps:
+      - run: |
+          if [[ "${{ needs.build-container.result }}" != "success" ]]; then
+            echo "Approval conditions not met. Exiting workflow."
+            exit 1
+          fi
       - name: Checkout
         uses: actions/checkout@v4
       - run: |
@@ -74,8 +79,13 @@ jobs:
   sync-route53:
     runs-on: ubuntu-latest
     needs: build-container
-    if: ${{ needs.build-container.result == 'success' }}
+    if: always()
     steps:
+      - run: |
+          if [[ "${{ needs.build-container.result }}" != "success" ]]; then
+            echo "Approval conditions not met. Exiting workflow."
+            exit 1
+          fi
       - name: Checkout
         uses: actions/checkout@v4
       - run: |
