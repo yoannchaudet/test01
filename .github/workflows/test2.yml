@@ -1,0 +1,77 @@
+name: "Proxima (ghe.com) v2 – repro issue"
+
+on:
+  workflow_dispatch:
+    inputs:
+      do-it:
+        description: "Do It: Whether to take action or just show what would change"
+        required: true
+        default: false
+        type: boolean
+      force:
+        description: "Force: Acknowledge that significant changes are being made and do them"
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "*/20 * * * *"
+
+concurrency:
+  group: "proxima"
+  cancel-in-progress: false
+
+jobs:
+
+  approval:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: request-approval
+    steps:
+      - run: |
+          echo "This workflow has been explicitly approved by @github/edge-foundation."
+
+  # Build OctoDNS container (don't push it)
+  build-container:
+    runs-on: ubuntu-latest
+    needs: approval
+    if: always()
+    outputs:
+      octodns-extra-args: ${{ steps.set-octodns-extra-args.outputs.extra-args }}
+    steps:
+      - name: Validate condition
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" && ! ( "${{ github.event_name }}" == "workflow_dispatch" && "${{ needs.approval.result }}" == "success" ) ]]; then
+            echo "::error::Approval conditions not met. Exiting workflow."
+            exit 1
+          fi
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set OctoDNS extra args
+        id: set-octodns-extra-args
+        run: |
+          ARGS=""
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event.inputs.do-it }}" == "true" ]]; then
+            ARGS="$ARGS --do-it"
+          fi
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force }}" == "true" ]]; then
+            ARGS="$ARGS --force"
+          fi
+          echo "extra-args=$ARGS" >> $GITHUB_OUTPUT
+
+  sync-ns1:
+    runs-on: ubuntu-latest
+    needs: build-container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - run: |
+          echo "OctoDNS args = ${{ needs.build-container.outputs.octodns-extra-args }}"
+
+  sync-route53:
+    runs-on: ubuntu-latest
+    needs: build-container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - run: |
+          echo "OctoDNS args = ${{ needs.build-container.outputs.octodns-extra-args }}"
