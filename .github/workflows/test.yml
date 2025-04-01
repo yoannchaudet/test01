@@ -61,6 +61,7 @@ jobs:
   sync-ns1:
     runs-on: ubuntu-latest
     needs: build-container
+    if: ${{ needs.build-container.result == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,6 +71,7 @@ jobs:
   sync-route53:
     runs-on: ubuntu-latest
     needs: build-container
+    if: ${{ needs.build-container.result == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
