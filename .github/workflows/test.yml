@@ -15,6 +15,9 @@ on:
         type: boolean
   schedule:
     - cron: "*/5 * * * *"
+  push:
+    branches:
+      - main
 
 concurrency:
   group: "proxima"
